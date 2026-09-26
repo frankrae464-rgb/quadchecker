@@ -31,6 +31,33 @@ func captureQuad(quad func(int, int), x, y int) string {
 	return string(data)
 }
 
+func checkQuad(input string, widht, height int, quad func(int, int)) bool {
+	output := captureQuad(quad, widht, height)
+
+	return output == input
+}
+
+func getDimensions(input string) (int, int, bool) {
+	trimmedInput := strings.TrimSuffix(input, "\n")
+
+	if trimmedInput == "" {
+		return 0, 0, false
+	}
+
+	lines := strings.Split(trimmedInput, "\n")
+
+	width := len(lines[0])
+	height := len(lines)
+
+	for _, line := range lines {
+		if len(line) != width {
+			return 0, 0, false
+		}
+	}
+
+	return width, height, true
+}
+
 func main() {
 	data, err := io.ReadAll(os.Stdin)
 	if err != nil {
@@ -39,20 +66,39 @@ func main() {
 
 	input := string(data)
 
-	trimmedInput := strings.TrimSuffix(input, "\n")
-	lines := strings.Split(trimmedInput, "\n")
+	width, height, valid := getDimensions(input)
 
-	height := len(lines)
-	width := len(lines[0])
-
-	output := captureQuad(piscine.QuadA, width, height)
-
-	if output == input {
-		fmt.Println("QuadA matches!")
-	} else {
-		fmt.Println("QuadA does not match.")
+	if !valid {
+		fmt.Println("Not a quad function")
+		return
 	}
 
-	fmt.Println("width: ", width)
-	fmt.Println("Height: ", height)
+	matches := []string{}
+
+	if checkQuad(input, width, height, piscine.QuadA) {
+		matches = append(matches, fmt.Sprintf("[quadA] [%d] [%d]", width, height))
+	}
+
+	if checkQuad(input, width, height, piscine.QuadB) {
+		matches = append(matches, fmt.Sprintf("[quadB] [%d] [%d]", width, height))
+	}
+
+	if checkQuad(input, width, height, piscine.QuadC) {
+		matches = append(matches, fmt.Sprintf("[quadC] [%d] [%d]", width, height))
+	}
+
+	if checkQuad(input, width, height, piscine.QuadD) {
+		matches = append(matches, fmt.Sprintf("[quadD] [%d] [%d]", width, height))
+	}
+
+	if checkQuad(input, width, height, piscine.QuadE) {
+		matches = append(matches, fmt.Sprintf("[quadE] [%d] [%d]", width, height))
+	}
+
+	if len(matches) == 0 {
+		fmt.Println("Not a quad function")
+		return
+	}
+
+	fmt.Println(strings.Join(matches, " || "))
 }
