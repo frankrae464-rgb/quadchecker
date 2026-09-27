@@ -5,52 +5,30 @@ import (
 	"io"
 	"os"
 	"strings"
-
-	"piscine"
 )
 
-func captureQuad(quad func(int, int), x, y int) string {
-	reader, writer, err := os.Pipe()
-	if err != nil {
-		return ""
-	}
-
-	oldStdout := os.Stdout
-	os.Stdout = writer
-
-	quad(x, y)
-
-	writer.Close()
-	os.Stdout = oldStdout
-
-	data, err := io.ReadAll(reader)
-	if err != nil {
-		return ""
-	}
-
-	return string(data)
-}
-
-func checkQuad(input string, widht, height int, quad func(int, int)) bool {
-	output := captureQuad(quad, widht, height)
-
-	return output == input
-}
-
 func getDimensions(input string) (int, int, bool) {
-	trimmedInput := strings.TrimSuffix(input, "\n")
-
-	if trimmedInput == "" {
+	if input == "" {
 		return 0, 0, false
 	}
 
-	lines := strings.Split(trimmedInput, "\n")
+	input = strings.TrimSuffix(input, "\n")
 
-	width := len(lines[0])
+	if input == "" {
+		return 0, 0, false
+	}
+
+	lines := strings.Split(input, "\n")
+
+	width := len([]rune(lines[0]))
 	height := len(lines)
 
+	if width == 0 {
+		return 0, 0, false
+	}
+
 	for _, line := range lines {
-		if len(line) != width {
+		if len([]rune(line)) != width {
 			return 0, 0, false
 		}
 	}
@@ -58,9 +36,111 @@ func getDimensions(input string) (int, int, bool) {
 	return width, height, true
 }
 
+func expectedChar(quad string, x, y, width, height int) rune {
+	switch quad {
+	case "quadA":
+		if y == 0 || y == height-1 {
+			if x == 0 || x == width-1 {
+				return 'o'
+			}
+			return '-'
+		}
+
+		if x == 0 || x == width-1 {
+			return '|'
+		}
+
+		return ' '
+
+	case "quadB":
+		if y == 0 && x == 0 {
+			return '/'
+		}
+		if y == 0 && x == width-1 {
+			return '\\'
+		}
+		if y == height-1 && x == 0 {
+			return '\\'
+		}
+		if y == height-1 && x == width-1 {
+			return '/'
+		}
+		if y == 0 || y == height-1 || x == 0 || x == width-1 {
+			return '*'
+		}
+
+		return ' '
+
+	case "quadC":
+		if y == 0 && (x == 0 || x == width-1) {
+			return 'A'
+		}
+		if y == height-1 && (x == 0 || x == width-1) {
+			return 'C'
+		}
+		if y == 0 || y == height-1 || x == 0 || x == width-1 {
+			return 'B'
+		}
+
+		return ' '
+
+	case "quadD":
+		if (y == 0 || y == height-1) && x == 0 {
+			return 'A'
+		}
+		if (y == 0 || y == height-1) && x == width-1 {
+			return 'C'
+		}
+		if y == 0 || y == height-1 || x == 0 || x == width-1 {
+			return 'B'
+		}
+
+		return ' '
+
+	case "quadE":
+		if y == 0 && x == 0 {
+			return 'A'
+		}
+		if y == 0 && x == width-1 {
+			return 'C'
+		}
+		if y == height-1 && x == 0 {
+			return 'C'
+		}
+		if y == height-1 && x == width-1 {
+			return 'A'
+		}
+		if y == 0 || y == height-1 || x == 0 || x == width-1 {
+			return 'B'
+		}
+
+		return ' '
+	}
+
+	return 0
+}
+
+func checkQuad(input string, quad string, width, height int) bool {
+	input = strings.TrimSuffix(input, "\n")
+	lines := strings.Split(input, "\n")
+
+	for y, line := range lines {
+		runes := []rune(line)
+
+		for x, char := range runes {
+			if char != expectedChar(quad, x, y, width, height) {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
 func main() {
 	data, err := io.ReadAll(os.Stdin)
 	if err != nil {
+		fmt.Println("Not a quad function")
 		return
 	}
 
@@ -73,26 +153,23 @@ func main() {
 		return
 	}
 
+	quads := []string{
+		"quadA",
+		"quadB",
+		"quadC",
+		"quadD",
+		"quadE",
+	}
+
 	matches := []string{}
 
-	if checkQuad(input, width, height, piscine.QuadA) {
-		matches = append(matches, fmt.Sprintf("[quadA] [%d] [%d]", width, height))
-	}
-
-	if checkQuad(input, width, height, piscine.QuadB) {
-		matches = append(matches, fmt.Sprintf("[quadB] [%d] [%d]", width, height))
-	}
-
-	if checkQuad(input, width, height, piscine.QuadC) {
-		matches = append(matches, fmt.Sprintf("[quadC] [%d] [%d]", width, height))
-	}
-
-	if checkQuad(input, width, height, piscine.QuadD) {
-		matches = append(matches, fmt.Sprintf("[quadD] [%d] [%d]", width, height))
-	}
-
-	if checkQuad(input, width, height, piscine.QuadE) {
-		matches = append(matches, fmt.Sprintf("[quadE] [%d] [%d]", width, height))
+	for _, quad := range quads {
+		if checkQuad(input, quad, width, height) {
+			matches = append(
+				matches,
+				fmt.Sprintf("[%s] [%d] [%d]", quad, width, height),
+			)
+		}
 	}
 
 	if len(matches) == 0 {
