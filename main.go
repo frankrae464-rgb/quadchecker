@@ -174,6 +174,7 @@ func main() {
 		}
 	}
 
+        // Display all matching quads, or report that none matched.
 	if len(matches) == 0 {
 		fmt.Println("Not a quad function")
 		return
