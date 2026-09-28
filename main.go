@@ -139,7 +139,8 @@ func checkQuad(input string, quad string, width, height int) bool {
 }
 
 func main() {
-	data, err := io.ReadAll(os.Stdin)
+        // Read the complete quad from standard input.
+        data, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		fmt.Println("Not a quad function")
 		return
