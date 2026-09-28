@@ -27,6 +27,7 @@ func getDimensions(input string) (int, int, bool) {
 		return 0, 0, false
 	}
 
+        // Every row must have the same width.
 	for _, line := range lines {
 		if len([]rune(line)) != width {
 			return 0, 0, false
